@@ -8,12 +8,24 @@ name = "riot_api"
 path = "src/lib.rs"
 
 [dependencies]
-actix-web = "4.4"
+actix-web = "4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-base64 = "0.21"
-hmac = "0.12"
-sha2 = "0.10"
+base64 = "0.22.1"
+hmac = "0.12.1"
+sha2 = "0.10.8"
 env_logger = "0.10"
 log = "0.4"
 futures = "0.3"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["async_tokio"] }
+tokio = { version = "1", features = ["full"] }
+
+[[bench]]
+name = "crypto_benches"
+harness = false
+
+[[bench]]
+name = "endpoint_benches"
+harness = false
