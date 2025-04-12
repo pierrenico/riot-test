@@ -15,13 +15,37 @@ type HmacSha256 = Hmac<Sha256>;
 // Secret key for HMAC - in a real application, this should be properly managed
 const SECRET_KEY: &[u8] = b"your-secret-key-here";
 
+/// Helper function to encode data
+fn encode(data: &[u8]) -> String {
+    BASE64.encode(data)
+}
+
+/// Helper function to decode data
+fn decode(data: &str) -> Result<Vec<u8>, String> {
+    BASE64.decode(data).map_err(|e| format!("Failed to decode: {}", e))
+}
+
+/// Helper function to create a new instance
+fn create_signing_instance() -> Result<HmacSha256, String> {
+    HmacSha256::new_from_slice(SECRET_KEY)
+        .map_err(|e| format!("Failed to create: {}", e))
+}
+
+/// Helper function to compute signature
+fn compute(data: &[u8]) -> Result<String, String> {
+    let mut instance = create_signing_instance()?;
+    instance.update(data);
+    let result = instance.finalize();
+    Ok(encode(&result.into_bytes()))
+}
+
 pub fn encrypt_data(data: &Value) -> Result<Value, String> {
     match data {
         Value::Object(obj) => {
             let mut result = serde_json::Map::new();
             for (key, value) in obj {
                 // Convert the value to a string and encode it
-                let encoded = BASE64.encode(value.to_string());
+                let encoded = encode(&value.to_string().into_bytes());
                 result.insert(key.clone(), Value::String(encoded));
             }
             Ok(Value::Object(result))
@@ -38,7 +62,7 @@ pub fn decrypt_data(data: &Value) -> Result<Value, String> {
                 match value {
                     Value::String(s) => {
                         // Try to decode the string
-                        if let Ok(decoded_bytes) = BASE64.decode(s) {
+                        if let Ok(decoded_bytes) = decode(s) {
                             if let Ok(decoded_str) = String::from_utf8(decoded_bytes) {
                                 // Try to parse the decoded string back into a JSON value
                                 if let Ok(parsed_value) = serde_json::from_str::<Value>(&decoded_str) {
@@ -107,18 +131,8 @@ pub fn sign_data(data: &Value) -> Result<String, String> {
     // Convert to string for hashing
     let json_str = canonical.to_string();
     
-    // Create HMAC instance
-    let mut mac = HmacSha256::new_from_slice(SECRET_KEY)
-        .map_err(|e| format!("Failed to create HMAC: {}", e))?;
-    
-    // Update with the canonical JSON string
-    mac.update(json_str.as_bytes());
-    
-    // Get the result and convert to base64
-    let result = mac.finalize();
-    let signature = BASE64.encode(result.into_bytes());
-    
-    Ok(signature)
+    // Compute signature
+    compute(json_str.as_bytes())
 }
 
 pub fn verify_signature(data: &Value, signature: &str) -> Result<bool, String> {
