@@ -5,6 +5,7 @@ use serde_json::json;
 fn benchmark_crypto(c: &mut Criterion) {
     // Use a JSON object for encryption/decryption benchmarks
     let data_to_encrypt = json!({ "key": "some test data" }); 
+    let secret_key = "test-secret-key".as_bytes().to_vec();
 
     // Benchmark encryption
     c.bench_function("encrypt_data", |b| b.iter(|| crypto::encrypt_data(&data_to_encrypt).unwrap()));
@@ -15,13 +16,13 @@ fn benchmark_crypto(c: &mut Criterion) {
 
     // Benchmark signing
     let data_to_sign = json!({ "message": "sign me" });
-    c.bench_function("sign_data", |b| b.iter(|| crypto::sign_data(&data_to_sign).unwrap()));
+    c.bench_function("sign_data", |b| b.iter(|| crypto::sign_data(&data_to_sign, &secret_key).unwrap()));
 
     // Need signature for verification benchmark
-    let signature = crypto::sign_data(&data_to_sign).unwrap();
+    let signature = crypto::sign_data(&data_to_sign, &secret_key).unwrap();
     // Reconstruct the data format expected by verify_signature (if it expects combined data+sig)
     // Note: verify_signature in crypto.rs only takes data and signature separately.
-    c.bench_function("verify_signature", |b| b.iter(|| crypto::verify_signature(&data_to_sign, &signature).unwrap()));
+    c.bench_function("verify_signature", |b| b.iter(|| crypto::verify_signature(&data_to_sign, &signature, &secret_key).unwrap()));
 }
 
 criterion_group!(benches, benchmark_crypto);

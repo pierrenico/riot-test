@@ -18,7 +18,8 @@ fn benchmark_endpoints(c: &mut Criterion) {
     });
 
     let encrypted_data = crypto::encrypt_data(&sample_data).expect("Encryption failed for setup");
-    let signature = crypto::sign_data(&sample_data).expect("Signing failed for setup");
+    let secret_key = "test-secret-key".as_bytes().to_vec();
+    let signature = crypto::sign_data(&sample_data, &secret_key).expect("Signing failed for setup");
     let verify_payload = models::VerifyRequest {
         data: sample_data.clone(),
         signature: signature.clone(),
