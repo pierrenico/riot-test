@@ -166,6 +166,22 @@ RUST_LOG=riot_api=debug cargo run
 RUST_LOG=warn cargo run
 ```
 
+## Configuration
+
+The application can be configured using environment variables. Create a `.env` file in the project root or set the variables directly.
+
+- `PORT`: The port the server listens on. Defaults to `8080`.
+- `HMAC_SECRET_KEY`: The secret key used for signing and verifying messages with HMAC-SHA256. **This must be set and should be a strong, securely generated key.**
+- `RUST_LOG`: Controls the logging level (e.g., `info`, `debug`, `warn`, `error`). See the [env_logger documentation](https://docs.rs/env_logger/latest/env_logger/) for more details. Defaults to `info`.
+
+Example `.env` file:
+
+```dotenv
+PORT=8081
+HMAC_SECRET_KEY=your-super-secret-and-long-hmac-key
+RUST_LOG=debug
+```
+
 ## Development
 
 ### Prerequisites

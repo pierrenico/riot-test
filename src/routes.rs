@@ -62,14 +62,17 @@ pub async fn decrypt(data: web::Json<Value>) -> impl Responder {
 ///
 /// Takes a JSON object in the request body, generates an HMAC-SHA256 signature
 /// based on its canonical representation, and returns the signature in a JSON object.
+/// The HMAC secret key is retrieved from application data.
 ///
 /// Importantly it ensures key ordering can be arbitrary.
 /// 
 /// # Errors
 /// Returns a 400 Bad Request if signing fails internally.
-pub async fn sign(data: web::Json<Value>) -> impl Responder {
+/// Returns a 500 Internal Server Error if the secret key is missing in app data.
+pub async fn sign(data: web::Json<Value>, hmac_key: web::Data<Vec<u8>>) -> impl Responder {
     info!("Received signing request");
-    match sign_data(&data.into_inner()) {
+    let key = hmac_key.get_ref();
+    match sign_data(&data.into_inner(), key) {
         Ok(signature) => {
             info!("Successfully generated signature");
             HttpResponse::Ok().json(serde_json::json!({
@@ -89,16 +92,19 @@ pub async fn sign(data: web::Json<Value>) -> impl Responder {
 ///
 /// Takes a JSON object containing `data` and `signature` fields. It verifies
 /// if the provided signature matches the expected HMAC-SHA256 signature for the `data`.
+/// The HMAC secret key is retrieved from application data.
 ///
 /// Importantly it expects arbitrary key ordering.
 /// 
 /// # Responses
 /// - `204 No Content`: If the signature is valid.
 /// - `400 Bad Request`: If the signature is invalid or if verification fails internally.
-pub async fn verify(data: web::Json<VerifyRequest>) -> impl Responder {
+/// - `500 Internal Server Error`: If the secret key is missing in app data.
+pub async fn verify(data: web::Json<VerifyRequest>, hmac_key: web::Data<Vec<u8>>) -> impl Responder {
     info!("Received verification request");
     let verify_request = data.into_inner();
-    match verify_signature(&verify_request.data, &verify_request.signature) {
+    let key = hmac_key.get_ref();
+    match verify_signature(&verify_request.data, &verify_request.signature, key) {
         Ok(true) => {
             info!("Signature verification successful");
             HttpResponse::NoContent().finish()

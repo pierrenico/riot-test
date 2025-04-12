@@ -12,9 +12,6 @@ use std::collections::BTreeMap;
 // Create alias for HMAC-SHA256
 type HmacSha256 = Hmac<Sha256>;
 
-// Secret key for HMAC - in a real application, this should be properly managed
-const SECRET_KEY: &[u8] = b"your-secret-key-here";
-
 /// Helper function to encode data
 fn encode(data: &[u8]) -> String {
     BASE64.encode(data)
@@ -26,14 +23,14 @@ fn decode(data: &str) -> Result<Vec<u8>, String> {
 }
 
 /// Helper function to create a new instance
-fn create_signing_instance() -> Result<HmacSha256, String> {
-    HmacSha256::new_from_slice(SECRET_KEY)
+fn create_signing_instance(secret_key: &[u8]) -> Result<HmacSha256, String> {
+    HmacSha256::new_from_slice(secret_key)
         .map_err(|e| format!("Failed to create: {}", e))
 }
 
 /// Helper function to compute signature
-fn compute(data: &[u8]) -> Result<String, String> {
-    let mut instance = create_signing_instance()?;
+fn compute(data: &[u8], secret_key: &[u8]) -> Result<String, String> {
+    let mut instance = create_signing_instance(secret_key)?;
     instance.update(data);
     let result = instance.finalize();
     Ok(encode(&result.into_bytes()))
@@ -124,7 +121,7 @@ fn canonicalize_json(value: &Value) -> Value {
     }
 }
 
-pub fn sign_data(data: &Value) -> Result<String, String> {
+pub fn sign_data(data: &Value, secret_key: &[u8]) -> Result<String, String> {
     // Canonicalize the JSON to ensure consistent property ordering
     let canonical = canonicalize_json(data);
     
@@ -132,12 +129,12 @@ pub fn sign_data(data: &Value) -> Result<String, String> {
     let json_str = canonical.to_string();
     
     // Compute signature
-    compute(json_str.as_bytes())
+    compute(json_str.as_bytes(), secret_key)
 }
 
-pub fn verify_signature(data: &Value, signature: &str) -> Result<bool, String> {
+pub fn verify_signature(data: &Value, signature: &str, secret_key: &[u8]) -> Result<bool, String> {
     // Generate signature for the provided data
-    let expected_signature = sign_data(data)?;
+    let expected_signature = sign_data(data, secret_key)?;
     
     // Compare the signatures
     Ok(expected_signature == signature)
@@ -147,6 +144,16 @@ pub fn verify_signature(data: &Value, signature: &str) -> Result<bool, String> {
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::env;
+    use dotenvy::dotenv;
+
+    // Helper to get the secret key for tests
+    fn get_test_secret_key() -> Vec<u8> {
+        dotenv().ok(); // Load .env if present (useful for local testing)
+        env::var("HMAC_SECRET_KEY")
+            .expect("HMAC_SECRET_KEY must be set for tests")
+            .into_bytes()
+    }
 
     #[test]
     fn test_encrypt_decrypt_simple() {
@@ -233,35 +240,63 @@ mod tests {
             "message": "Hello World",
             "timestamp": 1616161616
         });
+        let key = get_test_secret_key();
 
         // Test signing
-        let signature = sign_data(&input).unwrap();
+        let signature = sign_data(&input, &key).unwrap();
         assert!(!signature.is_empty());
 
         // Test verification with correct signature
-        let is_valid = verify_signature(&input, &signature).unwrap();
+        let is_valid = verify_signature(&input, &signature, &key).unwrap();
         assert!(is_valid);
 
         // Test verification with incorrect signature
-        let is_valid = verify_signature(&input, "invalid-signature").unwrap();
+        let is_valid = verify_signature(&input, "invalid-signature", &key).unwrap();
         assert!(!is_valid);
     }
 
     #[test]
     fn test_signature_consistency() {
-        let input1 = json!({
-            "message": "Hello World",
-            "timestamp": 1616161616
+        let json1 = json!({
+            "name": "Alice",
+            "age": 30
         });
-
-        let input2 = json!({
-            "timestamp": 1616161616,
-            "message": "Hello World"
+        let json2 = json!({
+            "age": 30,
+            "name": "Alice"
         });
+        let key = get_test_secret_key();
 
-        // Signatures should be the same regardless of property order
-        let signature1 = sign_data(&input1).unwrap();
-        let signature2 = sign_data(&input2).unwrap();
-        assert_eq!(signature1, signature2);
+        let sig1 = sign_data(&json1, &key).unwrap();
+        let sig2 = sign_data(&json2, &key).unwrap();
+
+        assert_eq!(sig1, sig2);
+
+        let is_valid1 = verify_signature(&json1, &sig1, &key).unwrap();
+        let is_valid2 = verify_signature(&json2, &sig1, &key).unwrap();
+        assert!(is_valid1);
+        assert!(is_valid2);
+    }
+
+    #[test]
+    fn test_sign_verify_nested() {
+        let input = json!({
+            "user": {
+                "id": 123,
+                "details": {
+                    "name": "Bob"
+                }
+            },
+            "timestamp": 1616161617
+        });
+        let key = get_test_secret_key();
+
+        // Test signing
+        let signature = sign_data(&input, &key).unwrap();
+        assert!(!signature.is_empty());
+
+        // Test verification
+        let is_valid = verify_signature(&input, &signature, &key).unwrap();
+        assert!(is_valid);
     }
 }

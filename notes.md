@@ -1,4 +1,5 @@
 Tout fait avec Cursor, Sonnet et Gemini. Je n'ai pas écrit une seule ligne de code.
+Tout fait en Rust parce que c'est stylé, que j'y connais rien, et que pour un service comme ça ça doit être rapide.
 
 ### Quelques notes
 - Le premier passage sur la signature a fait une conversion en string (contrairement aux reqs)
