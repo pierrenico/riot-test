@@ -5,6 +5,11 @@ Tout fait en Rust parce que c'est stylé, que j'y connais rien, et que pour un s
 - Le premier passage sur la signature a fait une conversion en string (contrairement aux reqs)
 - Il avait pas pensé au fait qu'en JSON on peut avoir plusieurs clés avec le même nom (SHOULD, pas MUST), ce qui est tricky pour l'ordre; j'ai testé d'en tenir compte, puis décidé d'enjamber parce que serde le gère mal; j'y reviendrai peut-être à la fin
 - Il s'est un peu perdu sur les valeurs infinies en IEEE 754 vs la spec JSON (JSON fait IEEE 754 *sauf sur ça*)
+- Deux choses intéressantes je trouve: j'aurais jamais pensé à faire des benchs si c'était pas "gratos"
+- Quand j'ai demandé à Claude de penser à l'extramile il a eu l'idée d'OpenApi
+- J'ai pas mis en place toute ses idées, mais il en a eu des pas mal:
+    - protection contre la stackoverflow dans la fonction recursive de canonicalization
+    - tester avec des gros payloads et non unicode
 
 ### Les résultats des benchs
 
