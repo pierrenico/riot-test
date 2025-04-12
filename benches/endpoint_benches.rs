@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
-use actix_web::{test, web, App, dev::Service};
+use actix_web::{test, web, App};
 use serde_json::json;
 use riot_api::{routes, crypto, models}; // Import necessary modules from your crate
 use tokio::runtime::Runtime;

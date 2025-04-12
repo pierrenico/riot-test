@@ -5,7 +5,6 @@ use serde_json::json;
 fn benchmark_crypto(c: &mut Criterion) {
     // Use a JSON object for encryption/decryption benchmarks
     let data_to_encrypt = json!({ "key": "some test data" }); 
-    let key = "a_secret_key"; // Keep key for context, though not directly used in sign/verify calls shown
 
     // Benchmark encryption
     c.bench_function("encrypt_data", |b| b.iter(|| crypto::encrypt_data(&data_to_encrypt).unwrap()));
