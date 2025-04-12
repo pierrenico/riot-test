@@ -56,6 +56,7 @@ fn benchmark_endpoints(c: &mut Criterion) {
     group.bench_function(BenchmarkId::new("POST", "/sign"), |b| {
         b.to_async(&runtime).iter(|| async {
             let app = test::init_service(App::new()
+                .app_data(web::Data::new(secret_key.clone()))
                 .route("/sign", web::post().to(routes::sign))
             ).await;
             let req = test::TestRequest::post().uri("/sign").set_json(&sample_data).to_request();
@@ -68,6 +69,7 @@ fn benchmark_endpoints(c: &mut Criterion) {
     group.bench_function(BenchmarkId::new("POST", "/verify"), |b| {
         b.to_async(&runtime).iter(|| async {
             let app = test::init_service(App::new()
+                .app_data(web::Data::new(secret_key.clone()))
                 .route("/verify", web::post().to(routes::verify))
             ).await;
             let req = test::TestRequest::post().uri("/verify").set_json(&verify_payload).to_request();
