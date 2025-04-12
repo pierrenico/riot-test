@@ -27,17 +27,17 @@
 - [x] Add unit tests for encryption/decryption functionality
 
 ## Phase 3: Signing/Verification Implementation
-- [ ] Implement HMAC signing utilities in `crypto.rs`
-- [ ] Create JSON canonicalization for consistent property ordering
-- [ ] Implement `/sign` endpoint:
-  - [ ] Handle JSON input
-  - [ ] Generate HMAC signature
-  - [ ] Return JSON with signature
-- [ ] Implement `/verify` endpoint:
-  - [ ] Handle JSON input with signature and data
-  - [ ] Verify HMAC signature
-  - [ ] Return appropriate HTTP status
-- [ ] Add unit tests for signing/verification functionality
+- [x] Implement HMAC signing utilities in `crypto.rs`
+- [x] Create JSON canonicalization for consistent property ordering
+- [x] Implement `/sign` endpoint:
+  - [x] Handle JSON input
+  - [x] Generate HMAC signature
+  - [x] Return JSON with signature
+- [x] Implement `/verify` endpoint:
+  - [x] Handle JSON input with signature and data
+  - [x] Verify HMAC signature
+  - [x] Return appropriate HTTP status
+- [x] Add unit tests for signing/verification functionality
 
 ## Phase 4: Integration and Testing
 - [ ] Add integration tests for all endpoints

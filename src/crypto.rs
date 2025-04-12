@@ -1,5 +1,14 @@
 use serde_json::Value;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
+use std::collections::BTreeMap;
+
+// Create alias for HMAC-SHA256
+type HmacSha256 = Hmac<Sha256>;
+
+// Secret key for HMAC - in a real application, this should be properly managed
+const SECRET_KEY: &[u8] = b"your-secret-key-here";
 
 pub fn encrypt_data(data: &Value) -> Result<Value, String> {
     match data {
@@ -54,12 +63,58 @@ pub fn decrypt_data(data: &Value) -> Result<Value, String> {
     }
 }
 
+fn canonicalize_json(value: &Value) -> Value {
+    match value {
+        Value::Object(obj) => {
+            let mut sorted = BTreeMap::new();
+            for (key, value) in obj {
+                sorted.insert(key.clone(), canonicalize_json(value));
+            }
+            // Convert BTreeMap to serde_json::Map
+            let mut map = serde_json::Map::new();
+            for (key, value) in sorted {
+                map.insert(key, value);
+            }
+            Value::Object(map)
+        }
+        Value::Array(arr) => {
+            let mut sorted = Vec::new();
+            for value in arr {
+                sorted.push(canonicalize_json(value));
+            }
+            Value::Array(sorted)
+        }
+        _ => value.clone(),
+    }
+}
+
 pub fn sign_data(data: &Value) -> Result<String, String> {
-    Err("Not implemented yet".to_string())
+    // Canonicalize the JSON to ensure consistent property ordering
+    let canonical = canonicalize_json(data);
+    
+    // Convert to string for hashing
+    let json_str = canonical.to_string();
+    
+    // Create HMAC instance
+    let mut mac = HmacSha256::new_from_slice(SECRET_KEY)
+        .map_err(|e| format!("Failed to create HMAC: {}", e))?;
+    
+    // Update with the canonical JSON string
+    mac.update(json_str.as_bytes());
+    
+    // Get the result and convert to base64
+    let result = mac.finalize();
+    let signature = BASE64.encode(result.into_bytes());
+    
+    Ok(signature)
 }
 
 pub fn verify_signature(data: &Value, signature: &str) -> Result<bool, String> {
-    Err("Not implemented yet".to_string())
+    // Generate signature for the provided data
+    let expected_signature = sign_data(data)?;
+    
+    // Compare the signatures
+    Ok(expected_signature == signature)
 }
 
 #[cfg(test)]
@@ -144,5 +199,43 @@ mod tests {
         assert!(result.is_ok());
         // Invalid base64 strings should be preserved as-is
         assert_eq!(result.unwrap()["name"], json!("not a valid base64 string"));
+    }
+
+    #[test]
+    fn test_sign_verify() {
+        let input = json!({
+            "message": "Hello World",
+            "timestamp": 1616161616
+        });
+
+        // Test signing
+        let signature = sign_data(&input).unwrap();
+        assert!(!signature.is_empty());
+
+        // Test verification with correct signature
+        let is_valid = verify_signature(&input, &signature).unwrap();
+        assert!(is_valid);
+
+        // Test verification with incorrect signature
+        let is_valid = verify_signature(&input, "invalid-signature").unwrap();
+        assert!(!is_valid);
+    }
+
+    #[test]
+    fn test_signature_consistency() {
+        let input1 = json!({
+            "message": "Hello World",
+            "timestamp": 1616161616
+        });
+
+        let input2 = json!({
+            "timestamp": 1616161616,
+            "message": "Hello World"
+        });
+
+        // Signatures should be the same regardless of property order
+        let signature1 = sign_data(&input1).unwrap();
+        let signature2 = sign_data(&input2).unwrap();
+        assert_eq!(signature1, signature2);
     }
 }
