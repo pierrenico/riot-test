@@ -1,7 +1,7 @@
 use actix_web::{test, web, App};
 use serde_json::json;
 use riot_api::routes;
-use riot_api::models::{EncryptRequest, DecryptRequest, SignRequest, VerifyRequest};
+use riot_api::models::VerifyRequest;
 
 #[actix_web::test]
 async fn test_encrypt_decrypt_flow() {
