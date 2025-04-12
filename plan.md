@@ -14,17 +14,17 @@
   - [x] `src/models.rs` for data structures
 
 ## Phase 2: Encryption/Decryption Implementation
-- [ ] Implement Base64 encryption/decryption utilities in `crypto.rs`
-- [ ] Create JSON processing utilities to handle nested structures
-- [ ] Implement `/encrypt` endpoint:
-  - [ ] Handle JSON input
-  - [ ] Encrypt top-level properties
-  - [ ] Return encrypted JSON
-- [ ] Implement `/decrypt` endpoint:
-  - [ ] Handle JSON input
-  - [ ] Decrypt Base64-encoded properties
-  - [ ] Return original JSON
-- [ ] Add unit tests for encryption/decryption functionality
+- [x] Implement Base64 encryption/decryption utilities in `crypto.rs`
+- [x] Create JSON processing utilities to handle nested structures
+- [x] Implement `/encrypt` endpoint:
+  - [x] Handle JSON input
+  - [x] Encrypt top-level properties
+  - [x] Return encrypted JSON
+- [x] Implement `/decrypt` endpoint:
+  - [x] Handle JSON input
+  - [x] Decrypt Base64-encoded properties
+  - [x] Return original JSON
+- [x] Add unit tests for encryption/decryption functionality
 
 ## Phase 3: Signing/Verification Implementation
 - [ ] Implement HMAC signing utilities in `crypto.rs`
