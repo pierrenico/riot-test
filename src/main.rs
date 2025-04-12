@@ -3,7 +3,7 @@
 
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use env_logger::Env;
-use log::{info, error};
+use log::info;
 use std::env;
 use dotenvy::dotenv;
 
@@ -14,7 +14,7 @@ pub mod middleware;
 
 /// Simple health check endpoint.
 /// Returns a 200 OK response with a JSON body `{"status": "a-ok"}`.
-async fn health_check() -> impl Responder {
+pub async fn health_check() -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({
         "status": "a-ok"
     }))

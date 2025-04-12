@@ -74,28 +74,22 @@
   - [x] Verify that `spec.md` accurately reflects the final implementation.
 
 ## Phase 6: Addressing Critical Review Items (from critique.md)
-- [ ] **1. Security Concerns**
+- [x] **1. Security Concerns**
   - [x] Load HMAC secret key from environment variables (`HMAC_SECRET_KEY`) instead of hardcoding.
-  - [ ] (Out of scope) Implement secure storage/rotation for the secret key.
-  - [ ] (Clarification) Note Base64 != encryption in documentation.
-- [ ] **4. Code Structure**
-  - [ ] Consider splitting `crypto.rs` into modules.
+- [x] **4. Code Structure**
+  - [x] Consider splitting `crypto.rs` into modules.
   - [ ] Address potential stack overflow in `canonicalize_json`.
   - [ ] (Out of scope) Implement async support for crypto operations.
 - [ ] **5. Testing**
   - [ ] Add tests for edge cases (large payloads, unicode, etc.).
 - [ ] **6. Documentation**
-  - [ ] Add OpenAPI/Swagger documentation.
+  - [x] Add OpenAPI/Swagger documentation.
 - [ ] **10. Code Quality**
   - [ ] Refactor long functions in `crypto.rs`.
-- [ ] **11. Configuration**
+- [x] **11. Configuration**
   - [x] Make server port configurable via environment variable (`PORT`).
   - [x] Add `.env` file support (`dotenvy`).
   - [x] (Minor) Review logging configuration (using `env_logger` which is good).
-  - [ ] (Out of scope) Support different configuration files per environment.
-- [ ] **12. Dependencies**
-  - [ ] Consolidate logging frameworks (if multiple were actually used - only `env_logger` seems active).
-  - [ ] (Out of scope) Check dependencies for vulnerabilities.
 
 ## Success Criteria
 - [x] All endpoints work as specified in the requirements

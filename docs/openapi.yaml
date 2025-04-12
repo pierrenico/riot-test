@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: Rust Crypto API
+  version: 0.1.0
+  description: API for basic cryptographic operations (encrypt, decrypt, sign, verify).
+servers:
+  - url: /
+paths:
+  /encrypt:
+    post:
+      summary: Encrypts top-level values of a JSON object.
+      description: Takes any JSON object and returns a new JSON object where all top-level values are Base64 encoded. Nested objects/arrays are encoded as a whole.
+      requestBody:
+        description: Arbitrary JSON object to encrypt.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnyJsonObject'
+      responses:
+        '200':
+          description: Successfully encrypted JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedJsonObject'
+  /decrypt:
+    post:
+      summary: Decrypts top-level values of a JSON object.
+      description: Takes a JSON object potentially containing Base64 encoded strings at the top level and attempts to decode them. Non-string or non-Base64 values are returned as is.
+      requestBody:
+        description: JSON object with potentially encrypted values.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptedJsonObject' # Input might look like the output of /encrypt
+      responses:
+        '200':
+          description: Successfully decrypted JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnyJsonObject' # Output should ideally be the original object
+  /sign:
+    post:
+      summary: Signs a JSON object.
+      description: Computes an HMAC signature for the given JSON object based on its semantic value (property order does not matter) and returns the signature.
+      requestBody:
+        description: Arbitrary JSON object to sign.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnyJsonObject'
+      responses:
+        '200':
+          description: Successfully signed JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+  /verify:
+    post:
+      summary: Verifies the signature of a JSON object.
+      description: Checks if the provided signature matches the computed signature for the given data object. Property order in the data object does not matter.
+      requestBody:
+        description: Object containing the signature and the data to verify.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '204':
+          description: Signature is valid. No content is returned.
+        '400':
+          description: Signature is invalid or request format is wrong.
+components:
+  schemas:
+    AnyJsonObject:
+      type: object
+      description: Represents any arbitrary JSON object.
+      additionalProperties: {} # Allows any type of value for properties
+    EncryptedJsonObject:
+      type: object
+      description: A JSON object where top-level values are typically Base64 encoded strings.
+      additionalProperties: 
+        type: string # Values are expected to be strings (encoded)
+    SignatureResponse:
+      type: object
+      description: Response containing the signature of the input data.
+      required:
+        - signature
+      properties:
+        signature:
+          type: string
+          description: The HMAC signature computed from the input data.
+          example: "a1b2c3d4e5f6g7h8i9j0..."
+    VerificationRequest:
+      type: object
+      description: Request body for the verification endpoint.
+      required:
+        - signature
+        - data
+      properties:
+        signature:
+          type: string
+          description: The signature to verify.
+          example: "a1b2c3d4e5f6g7h8i9j0..."
+        data:
+          $ref: '#/components/schemas/AnyJsonObject' 
