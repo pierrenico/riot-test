@@ -1,0 +1,11 @@
+We're going to write a very basic Rust web app.
+
+It has 4 endpoints:
+- encrypt
+- decrypt
+- sign
+- verify
+
+See the spec.md file for the details, and the plan.md file for the current plan.
+
+Whenever we code something, we should always check the spec to see if we're on the right track. When we finish coding a step, we need to update the plan to check steps we've completed.
