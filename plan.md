@@ -1,17 +1,17 @@
 # Implementation Plan
 
 ## Phase 1: Project Setup and Basic Structure
-- [ ] Initialize a new Rust project with Cargo
-- [ ] Add necessary dependencies:
-  - [ ] `actix-web` for the web framework
-  - [ ] `serde` and `serde_json` for JSON handling
-  - [ ] `base64` for encryption/decryption
-  - [ ] `hmac` and `sha2` for signing/verification
-- [ ] Set up basic project structure:
-  - [ ] `src/main.rs` for application entry point
-  - [ ] `src/routes.rs` for endpoint definitions
-  - [ ] `src/crypto.rs` for cryptographic operations
-  - [ ] `src/models.rs` for data structures
+- [x] Initialize a new Rust project with Cargo
+- [x] Add necessary dependencies:
+  - [x] `actix-web` for the web framework
+  - [x] `serde` and `serde_json` for JSON handling
+  - [x] `base64` for encryption/decryption
+  - [x] `hmac` and `sha2` for signing/verification
+- [x] Set up basic project structure:
+  - [x] `src/main.rs` for application entry point
+  - [x] `src/routes.rs` for endpoint definitions
+  - [x] `src/crypto.rs` for cryptographic operations
+  - [x] `src/models.rs` for data structures
 
 ## Phase 2: Encryption/Decryption Implementation
 - [ ] Implement Base64 encryption/decryption utilities in `crypto.rs`
