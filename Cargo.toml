@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "riot_api"
-path = "src/lib.rs"
+path = "src/main.rs"
 
 [dependencies]
 actix-web = "4"

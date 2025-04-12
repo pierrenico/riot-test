@@ -7,10 +7,10 @@ use log::{info, error};
 use std::env;
 use dotenvy::dotenv;
 
-mod routes;
-mod crypto;
-mod models;
-mod middleware;
+pub mod routes;
+pub mod crypto;
+pub mod models;
+pub mod middleware;
 
 /// Simple health check endpoint.
 /// Returns a 200 OK response with a JSON body `{"status": "a-ok"}`.

@@ -2,6 +2,16 @@ use actix_web::{test, web, App};
 use serde_json::json;
 use riot_api::routes;
 use riot_api::models::VerifyRequest;
+use std::env;
+use dotenvy::dotenv;
+
+// Added helper function to get key
+fn get_test_secret_key() -> Vec<u8> {
+    dotenv().ok(); // Load .env if present
+    env::var("HMAC_SECRET_KEY")
+        .expect("HMAC_SECRET_KEY must be set for tests")
+        .into_bytes()
+}
 
 #[actix_web::test]
 async fn test_encrypt_decrypt_flow() {
@@ -47,8 +57,13 @@ async fn test_encrypt_decrypt_flow() {
 
 #[actix_web::test]
 async fn test_sign_verify_flow() {
+    // Load key for this test
+    let key = get_test_secret_key();
+    let hmac_key = web::Data::new(key.clone());
+
     let app = test::init_service(
         App::new()
+            .app_data(hmac_key.clone()) // Added key data
             .route("/encrypt", web::post().to(routes::encrypt))
             .route("/decrypt", web::post().to(routes::decrypt))
             .route("/sign", web::post().to(routes::sign))
@@ -86,8 +101,13 @@ async fn test_sign_verify_flow() {
 
 #[actix_web::test]
 async fn test_invalid_verification() {
+    // Load key for this test
+    let key = get_test_secret_key();
+    let hmac_key = web::Data::new(key.clone());
+
     let app = test::init_service(
         App::new()
+            .app_data(hmac_key.clone()) // Added key data
             .route("/encrypt", web::post().to(routes::encrypt))
             .route("/decrypt", web::post().to(routes::decrypt))
             .route("/sign", web::post().to(routes::sign))
