@@ -1,3 +1,6 @@
+//! Defines Actix web middleware for the application.
+//! Currently includes a logging middleware.
+
 use actix_web::{
     dev::{Service, ServiceRequest, ServiceResponse, Transform},
     Error,
@@ -8,7 +11,12 @@ use std::time::Instant;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use actix_web::http::header::{USER_AGENT, CONTENT_TYPE};
 
+/// Actix middleware factory for logging requests and responses.
+///
+/// Logs information such as the request method, path, response status,
+/// duration, User-Agent, and Content-Type.
 pub struct Logger;
 
 impl<S, B> Transform<S, ServiceRequest> for Logger
@@ -28,6 +36,7 @@ where
     }
 }
 
+/// The actual logging middleware service.
 pub struct LoggerMiddleware<S> {
     service: S,
 }
@@ -50,7 +59,10 @@ where
         let start = Instant::now();
         let path = req.path().to_string();
         let method = req.method().to_string();
-        let _headers = req.headers().clone();
+        let headers = req.headers().clone();
+
+        let user_agent = headers.get(USER_AGENT).map_or("-".to_string(), |h| h.to_str().unwrap_or("-").to_string());
+        let content_type = headers.get(CONTENT_TYPE).map_or("-".to_string(), |h| h.to_str().unwrap_or("-").to_string());
 
         let fut = self.service.call(req);
         
@@ -61,19 +73,19 @@ where
             let status = res.status();
             let status_code = status.as_u16();
             
-            // Log request details
             info!(
-                "{} {} {} {}ms",
+                "{} {} - Status: {}, Duration: {}ms, User-Agent: '{}', Content-Type: '{}'",
                 method,
                 path,
                 status_code,
-                elapsed.as_millis()
+                elapsed.as_millis(),
+                user_agent,
+                content_type
             );
             
-            // Log warning for 4xx and 5xx responses
             if status_code >= 400 {
                 warn!(
-                    "Error response: {} {} {} {}ms",
+                    "Error response: {} {} - Status: {}, Duration: {}ms",
                     method,
                     path,
                     status_code,

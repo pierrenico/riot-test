@@ -4,10 +4,22 @@ A Rust web service that provides encryption, decryption, signing, and verificati
 
 ## Features
 
-- **Encryption/Decryption**: Base64 encoding/decoding of JSON properties
-- **Signing/Verification**: HMAC-based signature generation and verification
-- **JSON Support**: Full support for nested JSON structures
-- **Error Handling**: Proper HTTP status codes and error messages
+- **Encryption/Decryption**: Base64 encoding/decoding of top-level JSON properties.
+- **Signing/Verification**: HMAC-SHA256 based signature generation and verification, resistant to JSON property order changes.
+- **JSON Support**: Handles arbitrary JSON structures.
+- **Error Handling**: Standardized JSON error responses and appropriate HTTP status codes.
+- **Logging**: Configurable request/response logging.
+- **Health Check**: `/health` endpoint for service monitoring.
+
+## Dependencies
+
+This project relies on several key crates:
+
+- `actix-web`: For the web server framework.
+- `serde` / `serde_json`: For JSON serialization and deserialization.
+- `base64`: For Base64 encoding/decoding.
+- `hmac` / `sha2`: For HMAC-SHA256 signature generation and verification.
+- `log` / `env_logger`: For logging.
 
 ## API Endpoints
 
@@ -38,7 +50,7 @@ curl -X POST http://localhost:8080/encrypt \
 ```
 
 ### 2. Decryption (`/decrypt`)
-Decrypts Base64-encoded properties in a JSON payload.
+Decrypts Base64-encoded properties in a JSON payload. Non-encoded properties are ignored.
 
 **Request:**
 ```bash
@@ -64,7 +76,7 @@ curl -X POST http://localhost:8080/decrypt \
 ```
 
 ### 3. Signing (`/sign`)
-Generates an HMAC signature for a JSON payload.
+Generates an HMAC-SHA256 signature for a JSON payload. The signature is calculated based on a canonical representation of the JSON data, ensuring that the order of properties does not affect the result.
 
 **Request:**
 ```bash
@@ -79,12 +91,12 @@ curl -X POST http://localhost:8080/sign \
 **Response:**
 ```json
 {
-  "signature": "a1b2c3d4e5f6g7h8i9j0..."
+  "signature": "a1b2c3d4e5f6g7h8i9j0..." // Example signature
 }
 ```
 
 ### 4. Verification (`/verify`)
-Verifies an HMAC signature for a JSON payload.
+Verifies an HMAC-SHA256 signature for a JSON payload.
 
 **Request:**
 ```bash
@@ -100,21 +112,65 @@ curl -X POST http://localhost:8080/verify \
 ```
 
 **Response:**
-- Status 204: Signature is valid
-- Status 400: Signature is invalid
+- `204 No Content`: Signature is valid.
+- `400 Bad Request`: Signature is invalid or input format is wrong (see Error Handling).
+
+### 5. Health Check (`/health`)
+Returns the operational status of the service.
+
+**Request:**
+```bash
+curl http://localhost:8080/health
+```
+
+**Response:**
+```json
+{
+  "status": "a-ok"
+}
+```
 
 ## Error Handling
 
-The API returns appropriate HTTP status codes and error messages:
+The API uses standard HTTP status codes. For client-side errors (e.g., bad input, invalid signature), it returns `400 Bad Request` with a JSON body describing the error:
 
-- 400 Bad Request: Invalid input data or signature
-- 500 Internal Server Error: Server-side errors
+```json
+{
+  "error": "<error_message>"
+}
+```
+
+Possible `<error_message>` values include:
+- `Encryption failed`
+- `Decryption failed`
+- `Signing failed`
+- `Invalid signature`
+- `Verification failed`
+
+Server-side errors might result in a `500 Internal Server Error` response.
+
+## Logging
+
+The application uses `env_logger` for logging. Request details (method, path, selected headers, status, duration) are logged for each request.
+
+You can control the log level using the `RUST_LOG` environment variable. For example:
+
+```bash
+# Show info level logs (default)
+RUST_LOG=info cargo run
+
+# Show debug level logs for this crate
+RUST_LOG=riot_api=debug cargo run
+
+# Show warnings and errors only
+RUST_LOG=warn cargo run
+```
 
 ## Development
 
 ### Prerequisites
 
-- Rust 1.70 or later
+- Rust (check `Cargo.toml` for the specific version, typically latest stable)
 - Cargo
 
 ### Building
@@ -127,6 +183,7 @@ cargo build
 
 ```bash
 cargo run
+# Server will start on http://127.0.0.1:8080
 ```
 
 ### Testing

@@ -56,22 +56,22 @@
   - [x] Identify potential performance bottlenecks in `crypto.rs` based on benchmark results.
   - [x] (moot) Investigate alternative cryptographic libraries or implementations if necessary.
   - [x] Refactor `crypto.rs` for clarity and efficiency based on review and benchmarks.
-- [ ] Implement standardized error responses:
-  - [ ] Review existing error handling in `routes.rs` and `main.rs`.
-  - [ ] Define a consistent JSON error response format (e.g., `{"error": "message"}`).
-  - [ ] Implement user-friendly error messages for common failures (e.g., invalid input, decryption failure, verification failure).
-  - [ ] Ensure appropriate HTTP status codes are returned for all error scenarios.
-- [ ] Add request/response logging:
-  - [ ] Integrate a logging framework (e.g., `tracing`, `env_logger`).
-  - [ ] Configure logging middleware in `main.rs`.
-  - [ ] Log incoming request details (method, path, relevant headers).
-  - [ ] Log outgoing response details (status code).
-  - [ ] Consider options for logging request/response bodies securely (e.g., redaction).
-- [ ] Final documentation review:
-  - [ ] Review `README.md` for clarity, completeness, and accuracy.
-  - [ ] Review code comments across the project.
-  - [ ] Ensure example usage documentation is up-to-date and easy to follow.
-  - [ ] Verify that `spec.md` accurately reflects the final implementation.
+- [x] Implement standardized error responses:
+  - [x] Review existing error handling in `routes.rs` and `main.rs`.
+  - [x] Define a consistent JSON error response format (e.g., `{"error": "message"}`).
+  - [x] Implement user-friendly error messages for common failures (e.g., invalid input, decryption failure, verification failure).
+  - [x] Ensure appropriate HTTP status codes are returned for all error scenarios.
+- [x] Add request/response logging:
+  - [x] Integrate a logging framework (e.g., `tracing`, `env_logger`).
+  - [x] Configure logging middleware in `main.rs`.
+  - [x] Log incoming request details (method, path, relevant headers).
+  - [x] Log outgoing response details (status code).
+  - [x] Consider options for logging request/response bodies securely (e.g., redaction).
+- [x] Final documentation review:
+  - [x] Review `README.md` for clarity, completeness, and accuracy.
+  - [x] Review code comments across the project.
+  - [x] Ensure example usage documentation is up-to-date and easy to follow.
+  - [x] Verify that `spec.md` accurately reflects the final implementation.
 
 ## Success Criteria
 - [x] All endpoints work as specified in the requirements

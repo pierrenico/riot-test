@@ -1,3 +1,6 @@
+//! Application entry point and server setup.
+//! Configures logging, routes, and starts the Actix web server.
+
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use env_logger::Env;
 use log::info;
@@ -7,6 +10,8 @@ mod crypto;
 mod models;
 mod middleware;
 
+/// Simple health check endpoint.
+/// Returns a 200 OK response with a JSON body `{"status": "a-ok"}`.
 async fn health_check() -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({
         "status": "a-ok"

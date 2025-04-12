@@ -1,3 +1,8 @@
+//! This module handles the core cryptographic operations:
+//! - Base64 encoding/decoding for the /encrypt and /decrypt endpoints.
+//! - HMAC-SHA256 signing and verification for the /sign and /verify endpoints.
+//! It also includes JSON canonicalization logic to ensure signatures are consistent.
+
 use serde_json::Value;
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use hmac::{Hmac, Mac};
@@ -63,6 +68,13 @@ pub fn decrypt_data(data: &Value) -> Result<Value, String> {
     }
 }
 
+/// Recursively sorts JSON objects by key to create a canonical representation.
+///
+/// This is crucial for the signing process (/sign and /verify) to ensure that
+/// the signature remains consistent even if the order of properties in the
+/// input JSON object changes.
+/// Arrays are processed element by element, but their order is preserved.
+/// Other JSON types (String, Number, Boolean, Null) are returned as is.
 fn canonicalize_json(value: &Value) -> Value {
     match value {
         Value::Object(obj) => {

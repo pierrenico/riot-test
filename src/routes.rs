@@ -1,9 +1,22 @@
+//! Defines the Actix route handlers for the API endpoints.
+//! Each function corresponds to an API endpoint and handles request
+//! processing, calls the appropriate cryptographic functions, and
+//! constructs the HTTP response.
+
 use actix_web::{web, HttpResponse, Responder};
 use serde_json::Value;
 use crate::crypto::{encrypt_data, decrypt_data, sign_data, verify_signature};
 use crate::models::VerifyRequest;
-use log::{info, warn};
+use log::{info, warn, error};
 
+/// Handles POST requests to `/encrypt`.
+///
+/// Takes a JSON object in the request body, encrypts its top-level values
+/// using Base64 encoding, and returns the modified JSON object.
+///
+/// # Errors
+/// Returns a 400 Bad Request if the input is not a valid JSON object or if
+/// encryption fails internally.
 pub async fn encrypt(data: web::Json<Value>) -> impl Responder {
     info!("Received encryption request");
     match encrypt_data(&data.into_inner()) {
@@ -12,14 +25,23 @@ pub async fn encrypt(data: web::Json<Value>) -> impl Responder {
             HttpResponse::Ok().json(encrypted)
         },
         Err(e) => {
-            warn!("Encryption failed: {}", e);
+            error!("Encryption failed internally: {}", e);
             HttpResponse::BadRequest().json(serde_json::json!({
-                "error": e
+                "error": "Encryption failed"
             }))
         }
     }
 }
 
+/// Handles POST requests to `/decrypt`.
+///
+/// Takes a JSON object in the request body, attempts to decrypt any Base64-encoded
+/// string values at the top level, and returns the modified JSON object.
+/// Non-string values or strings that are not valid Base64 are preserved.
+///
+/// # Errors
+/// Returns a 400 Bad Request if the input is not a valid JSON object or if
+/// decryption fails internally (e.g., decoding error).
 pub async fn decrypt(data: web::Json<Value>) -> impl Responder {
     info!("Received decryption request");
     match decrypt_data(&data.into_inner()) {
@@ -28,14 +50,23 @@ pub async fn decrypt(data: web::Json<Value>) -> impl Responder {
             HttpResponse::Ok().json(decrypted)
         },
         Err(e) => {
-            warn!("Decryption failed: {}", e);
+            error!("Decryption failed internally: {}", e);
             HttpResponse::BadRequest().json(serde_json::json!({
-                "error": e
+                "error": "Decryption failed"
             }))
         }
     }
 }
 
+/// Handles POST requests to `/sign`.
+///
+/// Takes a JSON object in the request body, generates an HMAC-SHA256 signature
+/// based on its canonical representation, and returns the signature in a JSON object.
+///
+/// Importantly it ensures key ordering can be arbitrary.
+/// 
+/// # Errors
+/// Returns a 400 Bad Request if signing fails internally.
 pub async fn sign(data: web::Json<Value>) -> impl Responder {
     info!("Received signing request");
     match sign_data(&data.into_inner()) {
@@ -46,14 +77,24 @@ pub async fn sign(data: web::Json<Value>) -> impl Responder {
             }))
         },
         Err(e) => {
-            warn!("Signing failed: {}", e);
+            error!("Signing failed internally: {}", e);
             HttpResponse::BadRequest().json(serde_json::json!({
-                "error": e
+                "error": "Signing failed"
             }))
         }
     }
 }
 
+/// Handles POST requests to `/verify`.
+///
+/// Takes a JSON object containing `data` and `signature` fields. It verifies
+/// if the provided signature matches the expected HMAC-SHA256 signature for the `data`.
+///
+/// Importantly it expects arbitrary key ordering.
+/// 
+/// # Responses
+/// - `204 No Content`: If the signature is valid.
+/// - `400 Bad Request`: If the signature is invalid or if verification fails internally.
 pub async fn verify(data: web::Json<VerifyRequest>) -> impl Responder {
     info!("Received verification request");
     let verify_request = data.into_inner();
@@ -69,9 +110,9 @@ pub async fn verify(data: web::Json<VerifyRequest>) -> impl Responder {
             }))
         },
         Err(e) => {
-            warn!("Signature verification failed: {}", e);
+            error!("Signature verification failed internally: {}", e);
             HttpResponse::BadRequest().json(serde_json::json!({
-                "error": e
+                "error": "Verification failed"
             }))
         }
     }
